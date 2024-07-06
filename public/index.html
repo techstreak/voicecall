@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microphone Volume Checker</title>
+<style>
+  .pids-wrapper {
+    width: 100%;
+  }
+  .pid {
+    width: calc(10% - 10px);
+    height: 10px;
+    display: inline-block;
+    margin: 5px;
+    background-color: #e6e7e8; /* Default background color */
+  }
+  .slider-container {
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+  <div class="slider-container">
+    <label for="sensitivity-slider">Microphone Sensitivity:</label>
+    <input type="range" min="1" max="100" value="100" class="slider" id="sensitivity-slider">
+  </div>
+
+  <div class="pids-wrapper">
+    <div class="pid"></div>
+    <div class="pid"></div>
+    <div class="pid"></div>
+    <div class="pid"></div>
+    <div class="pid"></div>
+    <div class="pid"></div>
+    <div class="pid"></div>
+    <div class="pid"></div>
+    <div class="pid"></div>
+    <div class="pid"></div>
+  </div>
+
+  <script>
+    let sensitivity = 100; // Initial sensitivity value (between 1 and 100)
+
+    // Function to start microphone analysis
+    function startMicrophoneAnalysis() {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          const audioContext = new AudioContext();
+          const analyser = audioContext.createAnalyser();
+          const microphone = audioContext.createMediaStreamSource(stream);
+          const scriptProcessor = audioContext.createScriptProcessor(2048, 1, 1);
+
+          analyser.smoothingTimeConstant = 0.2; // Adjust smoothing for faster response
+          analyser.fftSize = 2048; // Higher FFT size for more accurate frequency analysis
+
+          microphone.connect(analyser);
+          analyser.connect(scriptProcessor);
+          scriptProcessor.connect(audioContext.destination);
+          scriptProcessor.onaudioprocess = function() {
+            const array = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(array);
+            const average = array.reduce((a, value) => a + value, 0) / array.length;
+            updateVolumeMeter(Math.round(average));
+          };
+        })
+        .catch(function(err) {
+          console.error('Error accessing microphone:', err);
+        });
+    }
+
+    // Function to update volume meter display
+    function updateVolumeMeter(volume) {
+      const allPids = document.querySelectorAll('.pid');
+      const numberOfPidsToColor = Math.round(volume * (sensitivity / 100) / 10);
+      allPids.forEach((pid, index) => {
+        if (index < numberOfPidsToColor) {
+          pid.style.backgroundColor = "#69ce2b"; // Color based on volume
+        } else {
+          pid.style.backgroundColor = "#e6e7e8"; // Default background color
+        }
+      });
+    }
+
+    // Function to handle slider input and update sensitivity
+    document.getElementById('sensitivity-slider').addEventListener('input', function(e) {
+      sensitivity = e.target.value;
+    });
+
+    // Call startMicrophoneAnalysis when the page is loaded
+    window.onload = function() {
+      startMicrophoneAnalysis();
+    };
+  </script>
+</body>
+</html>
