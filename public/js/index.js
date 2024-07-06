@@ -22,7 +22,8 @@
   // Use the Ngrok URL for Socket.IO connection
   //const socket = io("ws://127.0.0.1:1000");
 
-  const socket = io("ws://https://voicecall-tp0s.onrender.com");
+  
+var socket = io("https://voicecall-tp0s.onrender.com");
 
   socket.emit("userInformation", userStatus);
 
