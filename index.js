@@ -53,9 +53,9 @@ io.on("connection", function (socket) {
 });
 
 // Determine port dynamically (for Ngrok compatibility)
-const PORT = process.env.PORT || 1000;
+const PORT = process.env.PORT || 3000;
 
 // Start the server
 http.listen(PORT, () => {
-    console.log(`App is running on port ${PORT}!`);
+    console.log(`App is running man ${PORT}!`);
 });
